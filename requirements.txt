@@ -1,0 +1,7 @@
+PySide6
+pyqtgraph
+fastapi
+uvicorn
+pydantic
+python-dateutil
+pytest
