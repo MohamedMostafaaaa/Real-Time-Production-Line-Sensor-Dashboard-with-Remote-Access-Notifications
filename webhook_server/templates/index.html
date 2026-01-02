@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sensor Monitor Dashboard</title>
+  <style>
+    :root{
+      --bg: #0b1220;
+      --panel: rgba(255,255,255,0.06);
+      --panel-2: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.10);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.65);
+      --muted2: rgba(255,255,255,0.45);
+      --ok: #2dd4bf;
+      --warn: #fbbf24;
+      --crit: #fb7185;
+      --shadow: 0 18px 45px rgba(0,0,0,0.45);
+      --radius: 18px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color: var(--text);
+      background:
+        radial-gradient(1200px 900px at 20% 0%, rgba(45,212,191,0.15), transparent 55%),
+        radial-gradient(900px 700px at 90% 10%, rgba(251,113,133,0.14), transparent 55%),
+        radial-gradient(900px 900px at 50% 100%, rgba(251,191,36,0.10), transparent 60%),
+        var(--bg);
+      min-height:100vh;
+    }
+
+    a{color:inherit; text-decoration:none}
+    .wrap{max-width:1200px; margin:0 auto; padding:24px 18px 28px}
+
+    /* Top bar */
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:14px 16px;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.05));
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 12px;
+      backdrop-filter: blur(10px);
+      z-index: 5;
+    }
+
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      min-width: 260px;
+    }
+    .logo{
+      width:40px; height:40px; border-radius:14px;
+      background: linear-gradient(135deg, rgba(45,212,191,0.9), rgba(251,113,133,0.9));
+      box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+      position:relative;
+      overflow:hidden;
+    }
+    .logo:after{
+      content:"";
+      position:absolute; inset:-20%;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.35), transparent 55%);
+      transform: rotate(18deg);
+    }
+    .brand h1{
+      font-size: 16px;
+      margin:0;
+      letter-spacing: 0.2px;
+    }
+    .brand .sub{
+      font-size: 12px;
+      color: var(--muted);
+      margin-top:2px;
+    }
+
+    .statusPill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+      font-size: 12px;
+      color: var(--muted);
+      white-space:nowrap;
+    }
+    .dot{
+      width:8px; height:8px; border-radius:50%;
+      background: rgba(255,255,255,0.35);
+      box-shadow: 0 0 0 4px rgba(255,255,255,0.06);
+    }
+    .dot.ok{ background: var(--ok); box-shadow: 0 0 0 4px rgba(45,212,191,0.12); }
+    .dot.crit{ background: var(--crit); box-shadow: 0 0 0 4px rgba(251,113,133,0.12); }
+
+    .controls{
+      display:flex; align-items:center; gap:10px;
+      flex-wrap: wrap;
+      justify-content:flex-end;
+    }
+
+    .field{
+      display:flex; align-items:center; gap:8px;
+      padding:8px 10px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+      color: var(--muted);
+      font-size: 12px;
+    }
+    input, select{
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 12px;
+    }
+    input::placeholder{ color: var(--muted2) }
+
+    .btn{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:9px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.07);
+      color: var(--text);
+      cursor:pointer;
+      font-size: 12px;
+      transition: transform .05s ease, background .15s ease;
+      user-select:none;
+    }
+    .btn:hover{ background: rgba(255,255,255,0.10); }
+    .btn:active{ transform: translateY(1px); }
+    .btn.ghost{ background: rgba(255,255,255,0.04); }
+    .btn.danger{ border-color: rgba(251,113,133,0.45); background: rgba(251,113,133,0.08); }
+    .btn.danger:hover{ background: rgba(251,113,133,0.12); }
+
+    /* Summary cards */
+    .grid{
+      display:grid;
+      grid-template-columns: 1.2fr 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .card{
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,0.06);
+      padding: 14px 14px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.28);
+    }
+    .card h3{
+      margin:0;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: 0.25px;
+    }
+    .metric{
+      margin-top: 8px;
+      display:flex; align-items: baseline; gap:10px;
+    }
+    .metric .value{
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .metric .hint{
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .chips{
+      display:flex; flex-wrap:wrap; gap:8px;
+      margin-top: 10px;
+    }
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:7px 10px;
+      border-radius:999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .chip b{ color: var(--text); font-weight: 650; }
+    .chip .mini{ width:8px; height:8px; border-radius:50%; }
+    .mini.ok{ background: var(--ok); }
+    .mini.warn{ background: var(--warn); }
+    .mini.crit{ background: var(--crit); }
+
+    /* Table */
+    .tableWrap{
+      margin-top: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: rgba(255,255,255,0.04);
+      box-shadow: var(--shadow);
+    }
+    table{
+      width:100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+    }
+    thead th{
+      text-align:left;
+      padding: 12px 12px;
+      font-size: 12px;
+      color: var(--muted);
+      background: rgba(255,255,255,0.06);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 86px; /* below sticky topbar */
+      z-index: 2;
+      backdrop-filter: blur(10px);
+    }
+    tbody td{
+      padding: 12px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.88);
+      vertical-align: top;
+    }
+    tbody tr:hover td{
+      background: rgba(255,255,255,0.03);
+    }
+
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .pill strong{ color: var(--text); font-weight: 650; }
+
+    .sev{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      white-space: nowrap;
+    }
+    .sev .mini{ width:8px; height:8px; border-radius:50%; }
+    .sev.ok .mini{ background: var(--ok); }
+    .sev.warn .mini{ background: var(--warn); }
+    .sev.crit .mini{ background: var(--crit); }
+
+    .msg b{ display:block; font-weight: 700; margin-bottom: 4px; }
+    .msg .sub{ color: var(--muted); font-size: 12px; line-height: 1.35; }
+
+    .footer{
+      color: var(--muted2);
+      font-size: 12px;
+      margin-top: 14px;
+      display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    }
+
+    @media (max-width: 920px){
+      .grid{ grid-template-columns: 1fr; }
+      thead th{ top: 132px; }
+      .brand{ min-width:auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Sensor Monitor Dashboard</h1>
+          <div class="sub">Live alarm events viewer</div>
+        </div>
+      </div>
+
+      <div class="statusPill" title="Connection status">
+        <span id="dot" class="dot"></span>
+        <span id="status">loading…</span>
+        <span style="opacity:.5;">•</span>
+        <span id="count">0 events</span>
+      </div>
+
+      <div class="controls">
+        <div class="field" title="Search by message/source/type">
+          <span style="opacity:.7;">Search</span>
+          <input id="q" placeholder="e.g. FTNIR, shift, temp…" />
+        </div>
+
+        <div class="field" title="Show only a specific severity">
+          <span style="opacity:.7;">Severity</span>
+          <select id="sev">
+            <option value="">All</option>
+            <option value="CRITICAL">CRITICAL</option>
+            <option value="WARNING">WARNING</option>
+            <option value="OK">OK</option>
+          </select>
+        </div>
+
+        <div class="field" title="Auto-refresh interval">
+          <span style="opacity:.7;">Refresh</span>
+          <input id="interval" type="number" value="1000" min="200" step="100" style="width:90px;" />
+          <span style="opacity:.6;">ms</span>
+        </div>
+
+        <button class="btn" id="apply">Apply</button>
+        <button class="btn ghost" id="pause">Pause</button>
+        <button class="btn ghost" id="resume">Resume</button>
+        <button class="btn danger" id="clear">Clear</button>
+        <a class="btn ghost" href="/logout" title="Logout">Logout</a>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>Overview</h3>
+        <div class="metric">
+          <div class="value" id="metric_total">0</div>
+          <div class="hint">total received events</div>
+        </div>
+        <div class="chips">
+          <span class="chip"><span class="mini crit"></span><b id="metric_crit">0</b> Critical</span>
+          <span class="chip"><span class="mini warn"></span><b id="metric_warn">0</b> Warning</span>
+          <span class="chip"><span class="mini ok"></span><b id="metric_ok">0</b> OK</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Quick tips</h3>
+        <div class="chips">
+          <span class="chip">Use <b>Search</b> to filter by message/source/type</span>
+          <span class="chip">Change refresh interval to reduce load</span>
+          <span class="chip">Click <b>Pause</b> when investigating a burst</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>API</h3>
+        <div class="chips">
+          <span class="chip"><span class="subtle">POST</span> <span style="font-family:var(--mono)">/alarm</span></span>
+          <span class="chip"><span class="subtle">GET</span> <span style="font-family:var(--mono)">/api/alarm/recent</span></span>
+          <span class="chip"><span class="subtle">GET</span> <span style="font-family:var(--mono)">/health</span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 170px;">Received</th>
+            <th style="width: 140px;">Source</th>
+            <th style="width: 135px;">Severity</th>
+            <th style="width: 200px;">Type</th>
+            <th style="width: 140px;">Transition</th>
+            <th>Message</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="footer">
+      <div>Tip: For remote access, use your ngrok HTTPS URL.</div>
+      <div style="font-family:var(--mono)">v1 • UI-only view (server stores last 500 events)</div>
+    </div>
+  </div>
+
+  <script>
+    let timer = null;
+    let intervalMs = 1000;
+    let paused = false;
+
+    function safeStr(v) {
+      if (v === null || v === undefined) return "";
+      return String(v);
+    }
+    function enumShort(v) {
+      const s = safeStr(v);
+      const idx = s.lastIndexOf(".");
+      return idx >= 0 ? s.slice(idx + 1) : s;
+    }
+    function prettyTs(ts) {
+      return safeStr(ts).replace("T", " ");
+    }
+
+    function sevClass(sevShort) {
+      const s = (sevShort || "").toUpperCase();
+      if (s.includes("CRIT")) return "sev crit";
+      if (s.includes("WARN")) return "sev warn";
+      if (s === "OK") return "sev ok";
+      return "sev";
+    }
+    function dotClass(online) {
+      const dot = document.getElementById("dot");
+      dot.className = "dot " + (online ? "ok" : "crit");
+    }
+
+    function extractFields(body) {
+      const ev = body?.event || body?.payload?.event || body?.payload || body;
+      return {
+        received_at: null,
+        source: ev?.source,
+        severity: enumShort(ev?.severity),
+        alarm_type: enumShort(ev?.alarm_type),
+        transition: enumShort(ev?.transition),
+        message: ev?.message,
+        value: ev?.value,
+        details: ev?.details,
+      };
+    }
+
+    function passesFilters(f) {
+      const q = safeStr(document.getElementById("q").value).trim().toLowerCase();
+      const sev = safeStr(document.getElementById("sev").value).trim().toUpperCase();
+
+      if (sev && safeStr(f.severity).toUpperCase() !== sev) return false;
+
+      if (q) {
+        const hay = [
+          f.source, f.severity, f.alarm_type, f.transition, f.message, f.details,
+          (f.value !== null && f.value !== undefined) ? String(f.value) : ""
+        ].join(" ").toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    }
+
+    function updateMetrics(items) {
+      let crit = 0, warn = 0, ok = 0;
+      for (const it of items) {
+        const s = safeStr(it.severity).toUpperCase();
+        if (s.includes("CRIT")) crit++;
+        else if (s.includes("WARN")) warn++;
+        else if (s === "OK") ok++;
+      }
+      document.getElementById("metric_total").textContent = String(items.length);
+      document.getElementById("metric_crit").textContent = String(crit);
+      document.getElementById("metric_warn").textContent = String(warn);
+      document.getElementById("metric_ok").textContent = String(ok);
+    }
+
+    async function refresh() {
+      if (paused) return;
+
+      try {
+        const res = await fetch("/api/alarm/recent", { cache: "no-store" });
+        const data = await res.json();
+
+        const rawItems = (data.events || []).map(item => {
+          const receivedAt = item.received_at;
+          const body = item.body || {};
+          const f = extractFields(body);
+          f.received_at = receivedAt;
+          return f;
+        });
+
+        const filtered = rawItems.filter(passesFilters);
+
+        document.getElementById("status").textContent = "online";
+        document.getElementById("count").textContent = `${data.count} events`;
+        dotClass(true);
+
+        updateMetrics(filtered);
+
+        const tbody = document.getElementById("tbody");
+        tbody.innerHTML = "";
+
+        for (const f of filtered) {
+          const msgLines = [];
+          if (f.message) msgLines.push(`<div class="msg"><b>${safeStr(f.message)}</b></div>`);
+          if (f.value !== undefined && f.value !== null) msgLines.push(`<div class="sub">Value: ${safeStr(f.value)}</div>`);
+          if (f.details) msgLines.push(`<div class="sub">${safeStr(f.details)}</div>`);
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><span class="pill"><strong style="font-family:var(--mono)">${prettyTs(f.received_at)}</strong></span></td>
+            <td><span class="pill"><strong>${safeStr(f.source)}</strong></span></td>
+            <td><span class="${sevClass(f.severity)}"><span class="mini"></span><strong>${safeStr(f.severity)}</strong></span></td>
+            <td><span class="pill" style="font-family:var(--mono)">${safeStr(f.alarm_type)}</span></td>
+            <td><span class="pill" style="font-family:var(--mono)">${safeStr(f.transition)}</span></td>
+            <td class="msg">${msgLines.join("")}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+      } catch (e) {
+        document.getElementById("status").textContent = "offline";
+        document.getElementById("count").textContent = "—";
+        dotClass(false);
+      }
+    }
+
+    function start() {
+      if (timer) clearInterval(timer);
+      timer = setInterval(refresh, intervalMs);
+    }
+
+    document.getElementById("apply").onclick = () => {
+      intervalMs = Math.max(200, parseInt(document.getElementById("interval").value || "1000"));
+      start();
+      refresh();
+    };
+    document.getElementById("pause").onclick = () => { paused = true; };
+    document.getElementById("resume").onclick = () => { paused = false; refresh(); };
+    document.getElementById("clear").onclick = () => {
+      document.getElementById("tbody").innerHTML = "";
+      document.getElementById("metric_total").textContent = "0";
+      document.getElementById("metric_crit").textContent = "0";
+      document.getElementById("metric_warn").textContent = "0";
+      document.getElementById("metric_ok").textContent = "0";
+    };
+
+    // live search updates
+    document.getElementById("q").addEventListener("input", () => refresh());
+    document.getElementById("sev").addEventListener("change", () => refresh());
+
+    refresh();
+    start();
+  </script>
+</body>
+</html>

@@ -3,5 +3,12 @@ pyqtgraph
 fastapi
 uvicorn
 pydantic
+pyyaml
 python-dateutil
 pytest
+pytest-cov
+pytest-repeat
+requests
+dotenv
+flask
+types-Flask
