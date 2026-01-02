@@ -619,5 +619,5 @@ pip install -r requirements.txt
 
 - README.md – System overview and usage
 - DEPLOYMENT.md – Production deployment guide
-- docs/images/ – Architecture and UML diagrams
+- UML_Diagrams/ – Architecture and UML diagrams
 - config.yaml – Runtime configuration reference
