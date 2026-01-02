@@ -71,7 +71,7 @@ The system follows a layered architecture:
 - Notification Layer: Webhook delivery
 - UI Layer: PySide6 dashboard
 
-![Architecture Overview](UML_Diagrams/Arch_Overview)
+<img width="955" height="1164" alt="Arch_Overview" src="https://github.com/user-attachments/assets/2d7ac2a4-c3f1-414d-94f9-aa8e0f18216f" />
 
 ---
 
@@ -85,7 +85,7 @@ This diagram shows the core domain objects and their relationships.
 - StateStore
 - Runtime threads
 
-![alt text](image.png)
+<img width="1874" height="962" alt="API" src="https://github.com/user-attachments/assets/7044ac7f-2983-4208-bcb0-2868898bbf2b" />
 
 ---
 
@@ -101,7 +101,7 @@ End-to-end flow from sensor data reception to notification delivery.
 6. NotificationAdapterThread builds payloads
 7. NotificationWorkerThread sends webhooks
 
-![Runtime_Sequence](UML_Diagrams/Runtime_Sequence.png)
+<img width="2321" height="818" alt="Runtime_Sequence" src="https://github.com/user-attachments/assets/97bd30ad-d243-4e1b-bc78-93959e6e101b" />
 
 ---
 
@@ -374,7 +374,7 @@ exclusively through thread-safe queues.
 ### Threads Overview
 The following diagram shows the threading model:
 
-![Threading_Model](UML_Diagrams/Threading_Model.png)
+<img width="398" height="784" alt="Threading_Model" src="https://github.com/user-attachments/assets/3f127697-9751-4aa1-934d-7c1dedef306d" />
 
 - **ReadingsReceiverThread**
   - Owns the TCP connection
