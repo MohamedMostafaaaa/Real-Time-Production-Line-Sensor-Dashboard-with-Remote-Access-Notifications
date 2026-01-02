@@ -271,6 +271,9 @@ Supported transitions:
 - `RAISED` (inactive → active)
 - `UPDATED` (active → active, meaningful change)
 - `CLEARED` (active → inactive)
+As shown below:
+
+<img width="1090" height="320" alt="Alarm_State" src="https://github.com/user-attachments/assets/af0878f4-eb4a-4522-be1f-922c9f098e6b" />
 
 ---
 
@@ -429,6 +432,9 @@ This design prevents:
 ### Overview
 
 The Simulator emulates a real sensor acquisition system and acts as the data source for the Sensor Dashboard application. It produces realistic sensor readings and streams them over a TCP connection using the NDJSON (Newline-Delimited JSON) format.
+
+<img width="1316" height="107" alt="Simulator_Flow" src="https://github.com/user-attachments/assets/f228ec04-788e-48f8-bda5-18bbada38dab" />
+
 
 ---
 
@@ -619,5 +625,5 @@ pip install -r requirements.txt
 
 - README.md – System overview and usage
 - DEPLOYMENT.md – Production deployment guide
-- UML_Diagrams/ – Architecture and UML diagrams
-- config.yaml – Runtime configuration reference
+- UML_Diagrams\ – Architecture and UML diagrams
+- .\Source_Code\dist\config.yaml – Runtime configuration reference
