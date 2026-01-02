@@ -1,0 +1,37 @@
+# =========================
+# Python generated files
+# =========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# =========================
+# Virtual environment
+# =========================
+.venv/
+
+# =========================
+# Build / packaging artifacts
+# =========================
+build/
+dist/
+*.spec
+
+# =========================
+# Logs & runtime files
+# =========================
+*.log
+
+# =========================
+# OS generated files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# VS Code (keep settings.json only)
+# =========================
+.vscode/*
+!.vscode/settings.json
